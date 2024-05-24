@@ -15,6 +15,7 @@
 //	DSDA Palette Management
 //
 
+#include <math.h> //pow
 #include "r_main.h"
 #include "w_wad.h"
 #include "v_video.h"
