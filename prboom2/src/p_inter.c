@@ -42,6 +42,8 @@
 #include "d_deh.h"  // Ty 03/22/98 - externalized strings
 #include "p_tick.h"
 #include "lprintf.h"
+#include "i_main.h" // I_SafeExit
+#include "dsda/args.h" // tod_arg_tod, dsda_Flag
 
 #include "p_inter.h"
 #include "p_enemy.h"
@@ -1642,6 +1644,15 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
     }
 
     P_KillMobj (source, target);
+    
+    // time of death hack
+    if (player && dsda_Flag(tod_arg_tod))
+    {
+      extern int gametic;
+      printf("%d", gametic);
+      I_SafeExit(0);
+    }
+
     return;
   }
 

@@ -88,6 +88,7 @@ typedef enum {
   dsda_arg_dehout,
   dsda_arg_verbose,
   dsda_arg_quiet,
+  tod_arg_tod,
   dsda_arg_v,
   dsda_arg_resetgamma,
   dsda_arg_forceoldbsp,

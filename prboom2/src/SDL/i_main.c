@@ -252,6 +252,11 @@ int main(int argc, char **argv)
   if (dsda_Flag(dsda_arg_quiet))
     I_DisableAllLogging();
 
+  if (dsda_Flag(tod_arg_tod))
+  {
+    I_DisableAllLogging();
+  }
+
   // Print the version and exit
   if (dsda_Flag(dsda_arg_v))
   {

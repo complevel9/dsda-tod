@@ -388,6 +388,12 @@ static arg_config_t arg_config[dsda_arg_count] = {
     "disable all logging",
     arg_null,
   },
+  [tod_arg_tod] = {
+    "-tod", NULL, NULL,
+    "prints out first time of death in tics",
+    arg_null,
+  },
+
   [dsda_arg_v] = {
     "-v", NULL, NULL,
     "print the version and exit",
