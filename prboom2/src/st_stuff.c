@@ -52,6 +52,7 @@
 
 #include "dsda/settings.h"
 #include "dsda/stretch.h"
+#include "dsda/args.h" // mhrz mode
 
 #include "heretic/sb_bar.h"
 
@@ -743,7 +744,7 @@ int st_palette = 0;
 static void ST_doPaletteStuff(void)
 {
   int         palette;
-  int cnt = dsda_PainPalette() ? plyr->damagecount : 0;
+  int cnt = dsda_PainPalette() ? plyr->damagecount >> (dsda_Flag(tod_arg_mhrz) ? 2 : 0) : 0;
 
   if (dsda_PowerPalette() && plyr->powers[pw_strength])
     {
