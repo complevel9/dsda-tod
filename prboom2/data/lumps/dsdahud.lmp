@@ -81,6 +81,7 @@ command_display 198 48 bottom_right
 event_split 10 16 top_left
 level_splits 2 2 top
 fps 298 0 top_right
+keyboard_display 125 190 bottom_left
 
 heretic full
 ready_ammo_text 2 8 bottom_left

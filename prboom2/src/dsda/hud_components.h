@@ -25,6 +25,7 @@
 #include "hud_components/big_health.h"
 #include "hud_components/big_health_text.h"
 #include "hud_components/command_display.h"
+#include "hud_components/keyboard_display.h" // tod keyboard display
 #include "hud_components/composite_time.h"
 #include "hud_components/coordinate_display.h"
 #include "hud_components/event_split.h"

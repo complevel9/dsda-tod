@@ -73,6 +73,7 @@ typedef enum {
   exhud_coordinate_display,
   exhud_line_display,
   exhud_command_display,
+  exhud_keyboard_display, // tod keyboard display
   exhud_event_split,
   exhud_level_splits,
   exhud_component_count,
@@ -253,6 +254,13 @@ exhud_component_t components[exhud_component_count] = {
     .strict = true,
     .off_by_default = true,
     .intermission = true,
+  },
+  [exhud_keyboard_display] = {
+    tod_InitKDHC,
+    tod_UpdateKDHC,
+    tod_DrawKDHC,
+    tod_EraseKDHC,
+    "keyboard_display",
   },
   [exhud_event_split] = {
     dsda_InitEventSplitHC,

@@ -73,6 +73,7 @@ set(COMMON_SRC
     dsda/hud_components/big_health_text.c
     dsda/hud_components/big_health_text.h
     dsda/hud_components/command_display.c
+    dsda/hud_components/keyboard_display.c
     dsda/hud_components/command_display.h
     dsda/hud_components/composite_time.c
     dsda/hud_components/composite_time.h
