@@ -252,7 +252,7 @@ int main(int argc, char **argv)
   if (dsda_Flag(dsda_arg_quiet))
     I_DisableAllLogging();
 
-  if (dsda_Flag(tod_arg_tod))
+  if (dsda_Flag(tod_arg_tod) | dsda_Flag(tod_arg_pod))
   {
     I_DisableAllLogging();
   }

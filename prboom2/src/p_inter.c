@@ -1644,13 +1644,21 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
     }
 
     P_KillMobj (source, target);
-    
+
     // time of death hack
-    if (player && dsda_Flag(tod_arg_tod))
+    if (player)
     {
-      extern int gametic;
-      printf("%d", gametic);
-      I_SafeExit(0);
+      if (dsda_Flag(tod_arg_tod))
+      {
+        extern int gametic;
+        printf("%d", gametic);
+        I_SafeExit(0);
+      }
+      if (dsda_Flag(tod_arg_pod))
+      {
+        printf("%d %d %d", player->mo->x, player->mo->y, player->mo->z);
+        I_SafeExit(0);
+      }
     }
 
     return;
