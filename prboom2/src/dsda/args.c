@@ -393,6 +393,11 @@ static arg_config_t arg_config[dsda_arg_count] = {
     "prints out first time of death in tics",
     arg_null,
   },
+  [tod_arg_pod] = {
+    "-pod", NULL, NULL,
+    "prints out the position of death as raw signed ints",
+    arg_null,
+  },
   [tod_arg_mhrz] = {
     "-mhrz", NULL, NULL,
     "halves red screen intensity",
