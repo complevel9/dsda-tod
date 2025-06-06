@@ -1998,8 +1998,34 @@ int cpars[34] = {
 
 dboolean secretexit;
 
+void tod_ExitDig(dboolean secret)
+{
+  if (dsda_Flag(tod_arg_exitdig))
+  {
+    char *demo_name = "[not fastdemo]";
+    dsda_arg_t *arg = dsda_Arg(dsda_arg_fastdemo);
+    player_t *p = &players[displayplayer];
+    int hundredth = (int) (100 * ((leveltime % 35) / 35.f + 0.005f));
+    int sec = (leveltime / 35);
+    int min = sec / 60;
+    sec %= 60;
+    if (arg->found)
+      demo_name = arg->value.v_string;
+
+	printf("%d:%.2d.%.2d - %s exit - K %d/%d I %d/%d S %d/%d - %s\n",
+      min, sec, hundredth,
+      secret ? "secret" : "normal",
+      p->killcount,totalkills,
+      p->itemcount,totalitems,
+      p->secretcount,totalsecret,
+      demo_name);
+    I_SafeExit(0);
+  }
+}
+
 void G_ExitLevel(int position)
 {
+  tod_ExitDig(false);
   secretexit = false;
   gameaction = ga_completed;
   dsda_UpdateLeaveData(0, position, 0, 0);
@@ -2010,6 +2036,7 @@ void G_ExitLevel(int position)
 
 void G_SecretExitLevel(int position)
 {
+  tod_ExitDig(true);
   if (gamemode!=commercial || haswolflevels)
     secretexit = true;
   else

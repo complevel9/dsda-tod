@@ -396,6 +396,10 @@ static arg_config_t arg_config[dsda_arg_count] = {
   [tod_arg_pod] = {
     "-pod", NULL, NULL,
     "prints out the position of death as raw signed ints",
+  },
+  [tod_arg_exitdig] = {
+    "-exitdig", NULL, NULL,
+    "prints out demo name and exit time if exits",
     arg_null,
   },
   [tod_arg_mhrz] = {
