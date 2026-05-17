@@ -23,6 +23,9 @@ void dsda_MobjTrackerHC(char* str, size_t max_size, int id, mobj_t* mobj) {
   char xstr[FIXED_STRING_LENGTH];
   char ystr[FIXED_STRING_LENGTH];
   char zstr[FIXED_STRING_LENGTH];
+  char mxstr[FIXED_STRING_LENGTH];
+  char mystr[FIXED_STRING_LENGTH];
+  char mzstr[FIXED_STRING_LENGTH];
   int health;
 
   health = mobj->health;
@@ -33,13 +36,17 @@ void dsda_MobjTrackerHC(char* str, size_t max_size, int id, mobj_t* mobj) {
   dsda_FixedToString(xstr, mobj->x);
   dsda_FixedToString(ystr, mobj->y);
   dsda_FixedToString(zstr, mobj->z);
+  dsda_FixedToString(mxstr, mobj->momx);
+  dsda_FixedToString(mystr, mobj->momy);
+  dsda_FixedToString(mzstr, mobj->momz);
 
   snprintf(
     str,
     max_size,
-    "\x1b%cm %d: %d (%s, %s, %s)",
+    "\x1b%c%d: %d %s,%s,%s + %s,%s,%s",
     health > 0 ? HUlib_Color(exhud_color_warning) : HUlib_Color(exhud_color_default),
     id, health,
-    xstr, ystr, zstr
+    xstr, ystr, zstr,
+    mxstr, mystr, mzstr
   );
 }

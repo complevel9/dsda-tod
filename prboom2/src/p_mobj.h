@@ -447,7 +447,7 @@ mobj_t  *P_SpawnMissile(mobj_t *source, mobj_t *dest, mobjtype_t type);
 mobj_t  *P_SpawnPlayerMissile(mobj_t *source, mobjtype_t type);
 dboolean P_IsDoomnumAllowed(int doomnum);
 mobj_t* P_SpawnMapThing (const mapthing_t*  mthing, int index);
-void    P_SpawnPlayer(int n, const mapthing_t *mthing);
+mobj_t  *P_SpawnPlayer(int n, const mapthing_t *mthing); // bes 17/05/26
 dboolean P_CheckMissileSpawn(mobj_t*);  // killough 8/2/98
 void    P_ExplodeMissile(mobj_t*);    // killough
 

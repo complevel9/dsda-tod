@@ -1915,7 +1915,7 @@ void P_RespawnSpecials (void)
 
 extern byte playernumtotrans[MAX_MAXPLAYERS];
 
-void P_SpawnPlayer (int n, const mapthing_t* mthing)
+mobj_t* P_SpawnPlayer (int n, const mapthing_t* mthing)
 {
   player_t* p;
   fixed_t   x;
@@ -1929,12 +1929,12 @@ void P_SpawnPlayer (int n, const mapthing_t* mthing)
   // it detects and emulates overflows on vex6d.wad\bug_wald(toke).lmp, etc.
   // http://www.doom2.net/doom2/research/runningbody.zip
   if (PlayeringameOverrun(mthing))
-    return;
+    return NULL;
 
   // not playing?
 
   if (!playeringame[n])
-    return;
+    return NULL;
 
   p = &players[n];
 
@@ -1980,7 +1980,7 @@ void P_SpawnPlayer (int n, const mapthing_t* mthing)
         break;
       default:
         I_Error("P_SpawnPlayer: Unknown class type");
-        return;
+        return NULL;
     }
   }
   else
@@ -2055,6 +2055,7 @@ void P_SpawnPlayer (int n, const mapthing_t* mthing)
   }
 
   R_SmoothPlaying_Reset(p); // e6y
+  return mobj;
 }
 
 /*
@@ -2239,8 +2240,10 @@ mobj_t* P_SpawnMapThing (const mapthing_t* mthing, int index)
      * the playerstarts version with this field set */
     playerstarts[start][thingtype - 1].options = 1;
 
-    if (P_ShouldSpawnPlayer(mthing))
-      P_SpawnPlayer(thingtype - 1, &playerstarts[start][thingtype - 1]);
+    if (P_ShouldSpawnPlayer(mthing)) {
+      mobj = P_SpawnPlayer(thingtype - 1, &playerstarts[start][thingtype - 1]);
+      mobj->index = index; // bes 17/05/26: fix -track_mobj for voodoo dolls
+    }
     return NULL;
   }
 
@@ -2279,7 +2282,8 @@ mobj_t* P_SpawnMapThing (const mapthing_t* mthing, int index)
 
       if (P_ShouldSpawnPlayer(mthing))
       {
-        P_SpawnPlayer(player_start->type - 1, player_start);
+        mobj = P_SpawnPlayer(player_start->type - 1, player_start);
+        mobj->index = index;
       }
       return NULL;
     }
