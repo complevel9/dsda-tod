@@ -78,7 +78,7 @@ jobs:
         if: ${{ matrix.config.package_name }}
         run: |
           cd build
-          cpack
+          cpack -C RelWithDebInfo
 
       - name: Upload Artifacts
         if: ${{ matrix.config.package_name }}
