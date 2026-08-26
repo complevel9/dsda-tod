@@ -8,7 +8,7 @@ env:
 jobs:
   build:
     name: ${{ matrix.config.name }}
-    runs-on: self-hosted
+    runs-on: windows-latest
     defaults:
       run:
         shell: ${{ matrix.config.shell }}
@@ -24,7 +24,7 @@ jobs:
             shell: pwsh
             package_name: "msvc_x64"
             release: true
-            artifact-path: build/*.zip
+            artifact-path: build/*
             extra_options: >-
               -A x64
               -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_INSTALLATION_ROOT}\scripts\buildsystems\vcpkg.cmake"
@@ -32,96 +32,8 @@ jobs:
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
-          - name: "MSYS2 UCRT64"
-            os: windows-latest
-            build_type: "Release"
-            extra_options: "-G Ninja"
-            package_name: "mingw_x64"
-            shell: "msys2 {0}"
-            msystem: ucrt64
-            msys-env: mingw-w64-ucrt-x86_64
-            artifact-path: build/*.zip
-
-          - name: "Linux GCC"
-            os: ubuntu-22.04
-            build_type: "Release"
-            extra_options: "-G Ninja -DCMAKE_INSTALL_PREFIX=/usr"
-            release: true
-            package_name: "linux_gcc"
-            shell: bash
-            artifact-path: build/*.appimage
-
-          - name: "macOS arm64 Clang"
-            os: macos-latest
-            build_type: "Release"
-            extra_options: "-G Ninja"
-            release: true
-            package_name: "mac_arm64"
-            shell: bash
-            artifact-path: build/*.zip
-
-          - name: "macOS x64 Clang"
-            os: macos-13
-            build_type: "Release"
-            extra_options: "-G Ninja"
-            release: true
-            package_name: "mac_x64"
-            shell: bash
-            artifact-path: build/*.zip
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Dependencies (MSYS2)
-        if: matrix.config.shell == 'msys2 {0}'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{ matrix.config.msystem }}
-          install: >-
-            ${{ matrix.config.msys-env }}-gcc
-            ${{ matrix.config.msys-env }}-cmake
-            ${{ matrix.config.msys-env }}-ninja
-            ${{ matrix.config.msys-env }}-pkgconf
-            ${{ matrix.config.msys-env }}-libxmp
-            ${{ matrix.config.msys-env }}-fluidsynth
-            ${{ matrix.config.msys-env }}-libmad
-            ${{ matrix.config.msys-env }}-libvorbis
-            ${{ matrix.config.msys-env }}-portmidi
-            ${{ matrix.config.msys-env }}-SDL2
-            ${{ matrix.config.msys-env }}-SDL2_image
-            ${{ matrix.config.msys-env }}-SDL2_mixer
-            ${{ matrix.config.msys-env }}-libsndfile
-            ${{ matrix.config.msys-env }}-libzip
-
-      - name: Install Dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade
-          sudo apt-get install -y \
-            gcc \
-            ninja-build \
-            pkg-config \
-            libxmp-dev \
-            libfluidsynth-dev \
-            fluidsynth \
-            libgl-dev \
-            libglu1-mesa-dev \
-            libmad0-dev \
-            libportmidi-dev \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libvorbis-dev \
-            libsndfile1-dev \
-            libzip-dev \
-            zipcmp \
-            zipmerge \
-            ziptool
-
-      - name: Install Dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew bundle
 
       - name: Generate vcpkg cache key
         if: ${{ matrix.config.vcpkg }}
