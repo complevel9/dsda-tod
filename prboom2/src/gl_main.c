@@ -2080,7 +2080,10 @@ static void gld_AddHealthBar(mobj_t* thing, GLSprite *sprite)
   if (((thing->flags & (MF_COUNTKILL | MF_CORPSE)) == MF_COUNTKILL) && (thing->health > 0))
   {
     GLHealthBar hbar;
-    int health_percent = thing->health * 100 / P_MobjSpawnHealth(thing);
+    int health_percent;
+    hbar.spawnhealth = P_MobjSpawnHealth(thing);
+    hbar.health = thing->health;
+    health_percent = hbar.health * 100 / hbar.spawnhealth;
 
     hbar.color = health_bar_null;
     if (health_percent <= 50)
@@ -2115,17 +2118,88 @@ static GLfloat health_bar_rgb[3][3] = {
   [health_bar_yellow] = { 1.0f, 1.0f, 0.0f },
 };
 
+static int health_num_cr[3] = {CR_GRAY, CR_RED, CR_YELLOW};
+
+// stripped down clone of gld_DrawNumPatch, but 3D
+// not exactly general purpose, but enough for health nums
+// maybe damage number support soon? that'd be bells and whistles
+// probably needs character atlas to batch and not lag on big slotter maps,
+// or rework health bars to only be rendered when within some distance?
+
+// x2, z2 are output variables for the next character assuming zero kerning
+static void gld_HealthNums_DrawChar(float x1, float y, float z1, char c,
+  int cm, float *x2, float *z2)
+{
+  GLTexture *gltexture;
+  float width, height;
+  const float div = 2/(3*MAP_COEFF);
+  const int lump = exhud_font.font[c-'!'].lumpnum;
+
+  gltexture = gld_RegisterPatch(lump, cm, false, V_IsUILightmodeIndexed());
+  gld_BindPatch(gltexture, cm);
+
+  if (!gltexture)
+    return;
+
+  width  = gltexture->realtexwidth  * div;
+  height = gltexture->realtexheight * div;
+
+  *x2 = x1 - cos_inv_yaw * width;
+  *z2 = z1 + sin_inv_yaw * width;
+
+  glColor3f(1.0f, 1.0f, 1.0f);
+  #define fU2 gltexture->scalexfac
+  #define fV2 gltexture->scaleyfac
+
+  glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, fV2);   glVertex3f(x1, y, z1);
+    glTexCoord2f(0, 0);     glVertex3f(x1, y+height, z1);
+    glTexCoord2f(fU2, fV2); glVertex3f(*x2, y, *z2);
+    glTexCoord2f(fU2, 0);   glVertex3f(*x2, y+height, *z2);
+  glEnd();
+
+  #undef fU2
+  #undef fV2
+}
+
+static void gld_DrawHealthNums(void)
+{
+  int i, count;
+
+  count = gld_drawinfo.num_items[GLDIT_HBAR];
+
+  if (count > 0)
+  {
+    for (i = count - 1; i >= 0; i--)
+    {
+      GLHealthBar *hbar = gld_drawinfo.items[GLDIT_HBAR][i].item.hbar;
+      float hnum_x1, hnum_z1;
+      char buf[32];
+      int slen;
+
+      hnum_x1 = hbar->x2;
+      hnum_z1 = hbar->z2;
+      slen = snprintf(buf, sizeof(buf),
+        "%d/%d", hbar->health, hbar->spawnhealth);
+      for (int i = 0; i < slen; i++) {
+        gld_HealthNums_DrawChar(hnum_x1, hbar->y, hnum_z1, buf[i],
+          health_num_cr[hbar->color], &hnum_x1, &hnum_z1);
+      }
+    }
+  }
+}
+
 static void gld_DrawHealthBars(void)
 {
   int i, count;
+  const float thickness = 2/(MAP_COEFF);
   int color = health_bar_null;
-
   count = gld_drawinfo.num_items[GLDIT_HBAR];
   if (count > 0)
   {
     gld_EnableTexture2D(GL_TEXTURE0_ARB, false);
 
-    glBegin(GL_LINES);
+    glBegin(GL_TRIANGLES);
     for (i = count - 1; i >= 0; i--)
     {
       GLHealthBar *hbar = gld_drawinfo.items[GLDIT_HBAR][i].item.hbar;
@@ -2138,18 +2212,30 @@ static void gld_DrawHealthBars(void)
       }
 
       glVertex3f(hbar->x1, hbar->y, hbar->z1);
-      glVertex3f(hbar->x2, hbar->y, hbar->z2);
+      #define diag \
+        glVertex3f(hbar->x2, hbar->y, hbar->z2); \
+        glVertex3f(hbar->x1, hbar->y-thickness, hbar->z1);
+      diag
+      diag
+      glVertex3f(hbar->x2, hbar->y-thickness, hbar->z2);
+      #undef diag
     }
     glEnd();
 
     glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-    glBegin(GL_LINES);
+    glBegin(GL_TRIANGLES);
     for (i = count - 1; i >= 0; i--)
     {
       GLHealthBar *hbar = gld_drawinfo.items[GLDIT_HBAR][i].item.hbar;
 
       glVertex3f(hbar->x1, hbar->y, hbar->z1);
-      glVertex3f(hbar->x3, hbar->y, hbar->z3);
+      #define diag \
+        glVertex3f(hbar->x3, hbar->y, hbar->z3); \
+        glVertex3f(hbar->x1, hbar->y-thickness, hbar->z1);
+      diag
+      diag
+      glVertex3f(hbar->x3, hbar->y-thickness, hbar->z3);
+      #undef diag
     }
     glEnd();
 
@@ -2716,6 +2802,7 @@ void gld_DrawScene(player_t *player)
   {
     glsl_PushNullShader();
     gld_DrawHealthBars();
+    gld_DrawHealthNums();
     glsl_PopNullShader();
   }
 
