@@ -2075,14 +2075,17 @@ static void gld_DrawSprite(GLSprite *sprite)
   }
 }
 
-static void gld_AddHealthBar(mobj_t* thing, GLSprite *sprite)
+static void gld_AddHealthBar(mobj_t* thing, GLSprite *sprite, dboolean drawnum)
 {
   if (((thing->flags & (MF_COUNTKILL | MF_CORPSE)) == MF_COUNTKILL) && (thing->health > 0))
   {
     GLHealthBar hbar;
     int health_percent;
+
     hbar.spawnhealth = P_MobjSpawnHealth(thing);
     hbar.health = thing->health;
+    hbar.draw_health_num = drawnum;
+
     health_percent = hbar.health * 100 / hbar.spawnhealth;
 
     hbar.color = health_bar_null;
@@ -2120,12 +2123,7 @@ static GLfloat health_bar_rgb[3][3] = {
 
 static int health_num_cr[3] = {CR_GRAY, CR_RED, CR_YELLOW};
 
-// stripped down clone of gld_DrawNumPatch, but 3D
-// not exactly general purpose, but enough for health nums
-// maybe damage number support soon? that'd be bells and whistles
-// probably needs character atlas to batch and not lag on big slotter maps,
-// or rework health bars to only be rendered when within some distance?
-
+// stripped down clone of gld_DrawNumPatch, but 3D; not general purpose
 // x2, z2 are output variables for the next character assuming zero kerning
 static void gld_HealthNums_DrawChar(float x1, float y, float z1, char c,
   int cm, float *x2, float *z2)
@@ -2168,23 +2166,26 @@ static void gld_DrawHealthNums(void)
 
   count = gld_drawinfo.num_items[GLDIT_HBAR];
 
-  if (count > 0)
-  {
-    for (i = count - 1; i >= 0; i--)
-    {
-      GLHealthBar *hbar = gld_drawinfo.items[GLDIT_HBAR][i].item.hbar;
-      float hnum_x1, hnum_z1;
-      char buf[32];
-      int slen;
+  if (count == 0)
+    return;
 
-      hnum_x1 = hbar->x2;
-      hnum_z1 = hbar->z2;
-      slen = snprintf(buf, sizeof(buf),
-        "%d/%d", hbar->health, hbar->spawnhealth);
-      for (int i = 0; i < slen; i++) {
-        gld_HealthNums_DrawChar(hnum_x1, hbar->y, hnum_z1, buf[i],
-          health_num_cr[hbar->color], &hnum_x1, &hnum_z1);
-      }
+  for (i = count - 1; i >= 0; i--)
+  {
+    GLHealthBar *hbar = gld_drawinfo.items[GLDIT_HBAR][i].item.hbar;
+    float hnum_x1, hnum_z1;
+    char buf[32];
+    int slen;
+
+    if (!hbar->draw_health_num)
+      continue;
+
+    hnum_x1 = hbar->x2;
+    hnum_z1 = hbar->z2;
+    slen = snprintf(buf, sizeof(buf),
+      "%d/%d", hbar->health, hbar->spawnhealth);
+    for (int i = 0; i < slen; i++) {
+      gld_HealthNums_DrawChar(hnum_x1, hbar->y, hnum_z1, buf[i],
+        health_num_cr[hbar->color], &hnum_x1, &hnum_z1);
     }
   }
 }
@@ -2497,10 +2498,11 @@ void gld_ProjectSprite(mobj_t* thing, int lightlevel)
   {
     gld_AddDrawItem(GLDIT_SPRITE, &sprite);
   }
-
-  if (dsda_ShowHealthBars())
   {
-    gld_AddHealthBar(thing, &sprite);
+    // if too far away, no point in rendering numbers
+    const dboolean num_readable = tz < FRACUNIT * 800;
+    if (dsda_ShowHealthBars() || (dsda_ShowHealthNums() && num_readable))
+      gld_AddHealthBar(thing, &sprite, num_readable);
   }
 }
 
@@ -2798,12 +2800,14 @@ void gld_DrawScene(player_t *player)
     glEnable(GL_DEPTH_TEST);
   }
 
-  if (dsda_ShowHealthBars())
   {
-    glsl_PushNullShader();
-    gld_DrawHealthBars();
-    gld_DrawHealthNums();
-    glsl_PopNullShader();
+    const int hbar = dsda_ShowHealthBars(), hnum = dsda_ShowHealthNums();
+    if (hbar || hnum) {
+      glsl_PushNullShader();
+      if (hbar) gld_DrawHealthBars();
+      if (hnum) gld_DrawHealthNums();
+      glsl_PopNullShader();
+    }
   }
 
   //
